@@ -2,5 +2,5 @@
   "serverPort": 5000,
   "mongoURI": "mongodb+srv://admin:12345@clouddb.ohoui.mongodb.net/cloudDB?retryWrites=true&w=majority",
   "secretKey": "this_looks_secret_enough",
-  "filePath": "C:\\Users\\Стас\\WebstormProjects\\MERN_dataBase\\server\\files"
+  "filePath": "C:\\Users\\Стас\\WebstormProjects\\cloud_storage_MERN\\server\\files"
 }
