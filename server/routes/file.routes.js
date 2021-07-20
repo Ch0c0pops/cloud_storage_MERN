@@ -1,4 +1,4 @@
-import Router from "express";
+import Router from "express"
 import authMiddleware from '../middleware/auth.middleware.js'
 import fileController from "../controllers/fileController.js"
 
