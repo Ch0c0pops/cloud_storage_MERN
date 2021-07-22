@@ -66,16 +66,19 @@ class FileController {
             if (fs.existsSync(path)) {
                 return res.status(400).json({message: "File already exists"})
             }
-            console.log(path)
-            console.log(user.usedSpace)
 
             await file.mv(path)
+
+            let filePath = file.name
+            if (parent) {
+                filePath = parent.path + "\\" + file.name
+            }
 
             const newFile = new FileModel({
                 name: file.name,
                 type: type,
                 size: size,
-                path: parent?.path,
+                path: filePath,
                 user: user._id,
                 parent: parent?._id
             })
@@ -95,16 +98,36 @@ class FileController {
     async downloadFile(req, res) {
         try {
             const file = await FileModel.findOne({_id: req.query.id, user: req.user.id})
-            const path = `${config.get('filePath')}\\${req.user.id}\\${file.path}\\${file.name}`
+            const path = `${config.get('filePath')}\\${req.user.id}\\${file.path}`
 
-            if(fs.existsSync(path)){
+            if (fs.existsSync(path)) {
                 return res.download(path, file.name)
             }
-            return res.status(500).json({message: 'Download error'})
+
+            return res.status(400).json({message: 'Download error'})
 
         } catch (e) {
             console.log(e)
             return res.status(500).json({message: 'Download error'})
+        }
+    }
+
+    async deleteFile(req, res) {
+        try {
+            const file = await FileModel.findOne({_id: req.query.id, user: req.user.id})
+            const path = `${config.get('filePath')}\\${req.user.id}\\${file.path}`
+
+            if (!file) {
+                return res.status(400).json({message: 'File not found'})
+            }
+            await fileService.deleteFile(file)
+            await file.remove()
+
+            return res.json({message: 'file was deleted'})
+
+        } catch (e) {
+            console.log(e)
+            return res.status(500).json({message: 'Delete error, directory might be not empty'})
         }
     }
 

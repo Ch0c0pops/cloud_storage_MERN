@@ -18,9 +18,20 @@ class FileService {
                     return reject({message: 'File already exists'})
                 }
             } catch (e) {
-              return reject({message: 'File error'})
+                return reject({message: 'File error'})
             }
         })
+    }
+
+    deleteFile(file) {
+        const filePath = `${config.get('filePath')}\\${file.user}\\${file.path}`
+
+        if (file.type === 'dir') {
+            fs.rmdirSync(filePath)
+        } else {
+            fs.unlinkSync(filePath)
+        }
+
     }
 }
 
