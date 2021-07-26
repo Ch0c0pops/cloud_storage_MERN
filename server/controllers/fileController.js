@@ -1,8 +1,8 @@
-import FileModel from '../models/File.js'
-import fileService from "../services/fileService.js"
-import UserModel from "../models/User.js"
-import config from 'config'
-import fs from 'fs'
+import FileModel from '../models/File.js';
+import fileService from "../services/fileService.js";
+import UserModel from "../models/User.js";
+import config from 'config';
+import fs from 'fs';
 
 
 class FileController {
@@ -150,7 +150,24 @@ class FileController {
         }
     }
 
+    async searchFile(req, res) {
+
+        try {
+            const {searchParam} = req.query
+
+            const found = await FileModel.find({user: req.user.id})
+            let files = [...found]
+            const filtered = files.filter(f => f.name.toLowerCase().includes(searchParam.toLowerCase()))
+
+            return res.json(filtered)
+
+        } catch (e) {
+            console.log(e)
+            return res.status(500).json({message: 'Search error'})
+        }
+    }
 }
+
 
 const fileController = new FileController()
 
