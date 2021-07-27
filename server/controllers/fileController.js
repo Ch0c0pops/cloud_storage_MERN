@@ -60,6 +60,7 @@ class FileController {
     }
 
     async uploadFile(req, res) {
+        console.log(req.files)
         try {
             const file = req.files.file
             const type = file.name.split('.').pop()
@@ -94,14 +95,17 @@ class FileController {
 
             const newFile = new FileModel({
                 name: file.name,
-                type: type,
-                size: size,
+                type,
+                size,
                 path: filePath,
                 user: user._id,
                 parent: parent?._id
             })
-            parent.size = parent.size + file.size
-            await parent.save()
+            if (parent) {
+                parent.size = parent.size + file.size
+                await parent.save()
+            }
+
             await newFile.save()
             await user.save()
 
@@ -133,11 +137,18 @@ class FileController {
 
     async deleteFile(req, res) {
         try {
+
             const file = await FileModel.findOne({_id: req.query.id, user: req.user.id})
+            const parent = await FileModel.findOne({_id: file.parent, user: req.user.id})
+
             const path = `${config.get('filePath')}\\${req.user.id}\\${file.path}`
 
             if (!file) {
                 return res.status(400).json({message: 'File not found'})
+            }
+            if(parent){
+                parent.size = parent.size - file.size
+                await parent.save()
             }
             await fileService.deleteFile(file)
             await file.remove()
