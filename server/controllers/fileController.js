@@ -3,6 +3,7 @@ import fileService from "../services/fileService.js";
 import UserModel from "../models/User.js";
 import config from 'config';
 import fs from 'fs';
+import {v4 as uuidv4} from 'uuid';
 
 
 class FileController {
@@ -60,7 +61,6 @@ class FileController {
     }
 
     async uploadFile(req, res) {
-        console.log(req.files)
         try {
             const file = req.files.file
             const type = file.name.split('.').pop()
@@ -146,7 +146,7 @@ class FileController {
             if (!file) {
                 return res.status(400).json({message: 'File not found'})
             }
-            if(parent){
+            if (parent) {
                 parent.size = parent.size - file.size
                 await parent.save()
             }
@@ -175,6 +175,38 @@ class FileController {
         } catch (e) {
             console.log(e)
             return res.status(500).json({message: 'Search error'})
+        }
+    }
+
+    async uploadAvatar(req, res) {
+
+        try {
+            const file = req.files.file
+            const user = await UserModel.findById(req.user.id)
+            const fileName = uuidv4() + ".jpg"
+            file.mv(config.get('staticPath') + "\\" + fileName)
+            user.avatar = fileName
+            await user.save()
+            return res.json(user)
+
+        } catch (e) {
+            console.log(e)
+            return res.status(500).json({message: 'Avatar uploading error'})
+        }
+    }
+
+    async deleteAvatar(req, res) {
+
+        try {
+            const user = await UserModel.findById(req.user.id)
+            await fs.unlinkSync(`${config.get('staticPath') + "\\" + user.avatar}`)
+            user.avatar = null
+            await user.save()
+            return res.json(user)
+
+        } catch (e) {
+            console.log(e)
+            return res.status(500).json({message: 'Avatar deleting error'})
         }
     }
 }

@@ -11,6 +11,7 @@ const PORT = config.get('serverPort')
 const mongoURI = config.get('mongoURI')
 
 app.use(fileupload({}))
+app.use(express.static('static'))
 app.use(corsMiddleware)
 app.use(express.json())
 app.use('/api/auth', authRouter)
