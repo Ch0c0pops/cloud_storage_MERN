@@ -1,9 +1,9 @@
-import FileModel from '../models/File.js';
-import fileService from "../services/fileService.js";
-import UserModel from "../models/User.js";
-import config from 'config';
-import fs from 'fs';
-import {v4 as uuidv4} from 'uuid';
+import FileModel from '../models/File.js'
+import fileService from "../services/fileService.js"
+import UserModel from "../models/User.js"
+import config from 'config'
+import fs from 'fs'
+import {v4 as uuidv4} from 'uuid'
 
 
 class FileController {
@@ -16,10 +16,10 @@ class FileController {
             const parentFile = await FileModel.findOne({_id: parent})
             if (!parentFile) {
                 file.path = name
-                await fileService.createDir(file)
+                await fileService.createDir(req, file)
             } else {
                 file.path = `${parentFile.path}\\${file.name}`
-                await fileService.createDir(file)
+                await fileService.createDir(req, file)
                 parentFile.child.push(file._id)
                 await parentFile.save()
             }
@@ -76,9 +76,9 @@ class FileController {
 
             let path;
             if (parent) {
-                path = `${config.get('filePath')}\\${user._id}\\${parent.path}\\${file.name}`
+                path = `${req.filePath}\\${user._id}\\${parent.path}\\${file.name}`
             } else {
-                path = `${config.get('filePath')}\\${user._id}\\${file.name}`
+                path = `${req.filePath}\\${user._id}\\${file.name}`
             }
 
 
@@ -99,7 +99,7 @@ class FileController {
                 size,
                 path: filePath,
                 user: user._id,
-                parent: parent?._id
+                parent: parent? parent._id : null
             })
             if (parent) {
                 parent.size = parent.size + file.size
@@ -121,7 +121,7 @@ class FileController {
     async downloadFile(req, res) {
         try {
             const file = await FileModel.findOne({_id: req.query.id, user: req.user.id})
-            const path = `${config.get('filePath')}\\${req.user.id}\\${file.path}`
+            const path = `${req.filePath}\\${req.user.id}\\${file.path}`
 
             if (fs.existsSync(path)) {
                 return res.download(path, file.name)
@@ -141,7 +141,7 @@ class FileController {
             const file = await FileModel.findOne({_id: req.query.id, user: req.user.id})
             const parent = await FileModel.findOne({_id: file.parent, user: req.user.id})
 
-            const path = `${config.get('filePath')}\\${req.user.id}\\${file.path}`
+            const path = `${req.filePath}\\${req.user.id}\\${file.path}`
 
             if (!file) {
                 return res.status(400).json({message: 'File not found'})
@@ -150,7 +150,7 @@ class FileController {
                 parent.size = parent.size - file.size
                 await parent.save()
             }
-            await fileService.deleteFile(file)
+            await fileService.deleteFile(req, file)
             await file.remove()
 
             return res.json({message: 'file was deleted'})

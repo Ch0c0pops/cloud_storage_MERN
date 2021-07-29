@@ -12,8 +12,6 @@ const File = new mongoose.Schema({
     child: [{type: mongoose.ObjectId, ref: 'File'}] //на все внутренние файлы в папке
 })
 
-//File.index({name: 'text'})
-
 const FileModel = mongoose.model('File', File)
 
 
